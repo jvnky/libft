@@ -6,57 +6,75 @@
 /*   By: ychair <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/05 13:47:32 by ychair            #+#    #+#             */
-/*   Updated: 2019/11/05 13:47:39 by ychair           ###   ########.fr       */
+/*   Updated: 2019/11/06 16:59:38 by ychair           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static int		ft_match(const char c, char c1)
+static	int		**ft_free(char **tab, int i)
 {
-	if (c == c1)
-		return (1);
+	while (--i)
+	{
+		free(tab[i]);
+		tab[i] = 0;
+	}
+	free(tab);
+	tab = 0;
 	return (0);
 }
 
-static void		ft_my_free(char **str)
+static	int		nb_word(char *s, char c)
 {
-	size_t	i;
+	int	line;
 
-	i = 0;
-	while (str[i])
-	{
-		free(str[i]);
-		i++;
-	}
-	free(str);
+	line = 0;
+	while (s && *s && *s == c)
+		s++;
+	if (s && *s && *s != c)
+		line++;
+	while (s && *s && *s != c)
+		s++;
+	if (s && *s && *s == c)
+		line += nb_word(s, c);
+	return (line);
 }
 
-char			**ft_split(const char *str, char c)
+static	int		nb_char(char *s, char c)
 {
-	char	**tab;
-	int		j;
-	int		idx;
+	int	nbr_char;
 
-	idx = 0;
-	if (!str || !(tab = (char **)malloc(sizeof(char*) * 255)))
-		return (NULL);
-	while (*str && ft_match(*str, c) == 1)
-		str++;
-	while (*str)
+	nbr_char = 0;
+	while (s && s[nbr_char] && s[nbr_char] != c)
+		nbr_char++;
+	return (nbr_char);
+}
+
+char			**ft_split(char *s, char c)
+{
+	int		nb_w;
+	int		i;
+	int		j;
+	char	**tab;
+
+	i = -1;
+	nb_w = nb_word(s, c);
+	if (!s || !(tab = malloc(sizeof(char *) * (nb_w + 1))))
+		return (0);
+	while (++i < nb_w)
 	{
+		while (*s == c)
+			s++;
+		if (!(tab[i] = malloc(sizeof(char) * (nb_char(s, c) + 1))))
+			return (ft_free(tab, i));
 		j = 0;
-		if (!(tab[idx] = (char *)malloc(sizeof(char) * 2048)))
+		while (*s && *s != c)
 		{
-			ft_my_free(tab);
-			return (NULL);
+			tab[i][j++] = *s;
+			s++;
 		}
-		while (*str && (ft_match(*str, c) == 0))
-			tab[idx][j++] = *(str++);
-		while (*str && (ft_match(*str, c) == 1))
-			str++;
-		tab[idx++][j] = '\0';
+		tab[i][j] = '\0';
 	}
-	tab[idx] = NULL;
+	tab[i] = 0;
 	return (tab);
 }
